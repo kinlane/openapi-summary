@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+    {% include head.html %}
+
+    {% if page.hero %}
+        {% include hero.html %}
+    {% else %}
+        {% include navbar.html %}
+    {% endif %}
+
+    <style>
+        ul{
+            padding: 10px 25px 25px 25px;
+            margin: 10px 25px 25px 25px;
+        }
+    </style>
+
+    {{ content }}
+
+    {% include footer.html %}
+
+    </body>
+
+</html>

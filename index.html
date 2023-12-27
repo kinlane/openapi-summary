@@ -1,0 +1,137 @@
+---
+layout: page
+width: expand
+---
+<div class="uk-section">
+    <div class="uk-container uk-container-xlarge">
+
+        <h1 class="uk-article-title">OpenAPI Summary</h1>
+        <p>I find the info title and descriptions, as well as operation summary and descriptions to be the most telling aspect about how much an API producer cares about their API and it's consumers. The amount of energy you put into ensuring these elements of your API tell a story is directly proportional to how your consumers will adopt your API.</p>
+        <p>This tool is a simple text area where you can paste your OpenAPI and it will list the info title and description, as well as summary and description for each operation as an editable set of text boxes which update the OpenAPI when edited, helping you more effectively shape the narrative of your API using these important properties. </p>
+        <h2>OpenAPI</h2>
+        <input type="text" id="format" style="width: 100%;"> 
+        <textarea style="width: 100%; height: 250px; border: 5px solid #000;" id="openapi" onchange="updateOpenAPI();"></textarea>
+        <h2>Info</h2>
+        <p>The name and a description of your API should properly set the stage for the story you wish to tell with your API, put the effort into simply effectively naming your API, with a short but thoughtful description to support. Do not write a novel, and leave the design of your API to tell the bulk of your story.</p>
+        <div class="mb-3">
+            <label for="info-title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="info-title" style="width: 100%;" onchange="updateInfoTitle();">
+        </div>
+        <div class="mb-3">
+            <label for="info-description" class="form-label">Description</label>
+            <textarea class="form-control" id="info-description" rows="4" style="width: 100%;" onchange="updateInfoDescription();"></textarea>
+        </div>
+        <h2>Operations</h2>
+        <p>The summary and descriptions of each of your API operations should tell a simple and concise story of the value each API operation provides, providing a clear and straight to the point story of what is possible with your API.</p>
+        <div id="operations"></div>
+        <script>
+            function saveOpenAPI(openapi){
+                var format = document.getElementById('format').value;
+                if(format=='json'){
+                    document.getElementById('openapi').value = JSON.stringify(openapi, null, 2); 
+                }
+                if(format=='yaml'){
+                    document.getElementById('openapi').value = jsyaml.dump(openapi); 
+                }                
+            }
+
+            function parseOpenAPI(){
+                var openapi = document.getElementById('openapi').value;
+
+                var is_yaml = 0;
+                var is_json = 0;
+
+                try {
+                    var openapi = jsyaml.load(openapi);
+                    console.log(openapi);
+                    is_yaml = 1;
+                    is_json = 0;
+                } catch (error) {
+                    console.log(error);
+                }
+                try {
+                    var openapi = JSON.parse(openapi);
+                    is_json = 1;
+                    is_yaml = 0;
+                } catch (error) {}
+
+                if(is_json==1){
+                    document.getElementById("format").value = "json";
+                }
+                else{
+                    document.getElementById("format").value = "yaml";  
+                }
+                return openapi;                
+            }
+
+            function updateInfoTitle(){
+                var openapi = parseOpenAPI();
+                openapi.info.title = document.getElementById("info-title").value;
+                saveOpenAPI(openapi);
+            }
+            function updateInfoDescription(){
+                var openapi = parseOpenAPI();
+                openapi.info.description = document.getElementById("info-description").value;
+                saveOpenAPI(openapi);                
+            }            
+            function updateOperationSummary(path,verb,id){
+                var openapi = parseOpenAPI();
+                openapi.paths[path][verb].summary = document.getElementById(id).value;
+                saveOpenAPI(openapi);                
+            }            
+            function updateOperationDescription(path,verb,id){
+                var openapi = parseOpenAPI();
+                openapi.paths[path][verb].description = document.getElementById(id).value;
+                saveOpenAPI(openapi);                  
+            }            
+            function updateOpenAPI(){
+
+                var openapi = parseOpenAPI();
+
+                if(openapi.info.title){
+                    var info_title = openapi.info.title;
+                    document.getElementById("info-title").value = info_title;
+                }
+                if(openapi.info.description){
+                    var info_description = openapi.info.description;
+                    document.getElementById("info-description").value = info_description;
+                }
+
+                var html = '';
+                if(openapi.paths){
+                    var operation_counter = 1;
+                    for (const [path, method] of Object.entries(openapi.paths)) {
+                        
+                        //console.log(path);
+
+                        html += '<h3>' + path + '</h3>';
+
+                        for (const [verb, operation] of Object.entries(method)) {
+                            
+                            //console.log(verb);
+                            if(verb == 'get' || verb == 'post' || verb == 'patch' || verb == 'put' || verb == 'delete'){
+
+                            html += '<h4>' + verb + '</h4>';
+
+                            html += '<div class="mb-3">';
+                            html += '<label for="info-title" class="form-label">Title</label>';
+                            html += '<input type="text" class="form-control" id="operation-summary-' + operation_counter + '" style="width: 100%;" value="' + operation.summary + '" onchange="updateOperationSummary(' + "'" + path + "'" + ',' + "'" + verb + "'" + ',this.id)">';
+                            html += '</div>';
+
+                            html += '<div class="mb-3">';
+                            html += '<label for="info-description" class="form-label">Description</label>';
+                            html += '<textarea class="form-control" id="operation-description-' + operation_counter + '" rows="4" style="width: 100%;" onchange="updateOperationDescription(' + "'" + path + "'" + ',' + "'" + verb + "'" + ',this.id)">' + operation.description + '</textarea>';
+                            html += '</div>';
+
+                            operation_counter++;
+                            
+                            }
+                        }                    
+                    }
+                }
+                document.getElementById('operations').innerHTML = html;
+
+            }
+        </script>
+    </div>
+</div>
