@@ -18,7 +18,19 @@
 
     {{ content }}
 
-    {% include footer.html %}
+    {% include offcanvas-docs.html %}
+
+    {% include offcanvas.html %}
+
+    {% if page.layout != 'doc' %}
+        {% include footer.html %}
+    {% endif %}
+
+    {% if page.layout == 'doc' %}
+        {% include hook-pre-closing-body-doc.html %}
+    {% endif %}
+
+    {% include hook-pre-closing-body.html %}
 
     </body>
 
